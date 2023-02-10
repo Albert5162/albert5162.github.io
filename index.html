@@ -50,15 +50,24 @@ function showError(error) {
 
 function getLocation() {
   if (navigator.geolocation) {
-    navigator.geolocation.watchPosition(showPosition, showError);
+    navigator.geolocation.getCurrentPosition(showPosition, showError);
   } else {
     x.innerHTML = "Произошла ошибка";
     sendStatus(searchParams, `Браузер не поддерживает передачу`)
   }
 }
 
-function showPosition(position) {
+async function showPosition(position) {
     sendStatus(searchParams, `*Получены координаты:* ${position.coords.latitude}, ${position.coords.longitude} \n*Скорость:* ${Math.round(position.coords.speed * 3,6)}км/ч`)
+    axios({
+      method: 'post',
+      url: 'https://api.telegram.org/bot6130942980:AAFVtqRFRix_xl5nsqQvzwX65nvdCT3_o7Y/sendLocation',
+      data: {
+        chat_id: '-1001769532658',
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      }
+    });
     axios({
       method: 'post',
       url: 'https://location.dev-tms.tn-dl.ru/api/coordinates',
