@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Отсутствует подключение к сети</title>
+
+    <!-- Встраиваем таблицу стилей страницы. -->
+    <style>
+      body {
+        font-family: helvetica, arial, sans-serif;
+        margin: 2em;
+      }
+
+      h1 {
+        font-style: italic;
+        color: #373fff;
+      }
+
+      p {
+        margin-block: 1rem;
+      }
+
+      button {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Отсутствует подключение к сети</h1>
+
+    <p>Чтобы перезагрузить страницу, нажмите расположенную ниже кнопку.</p>
+    <button type="button">⤾ Перезагрузить</button>
+
+    <!-- Встраиваем файл JavaScript страницы. -->
+    <script>
+      // Функция ручной перезагрузки.
+      document.querySelector("button").addEventListener("click", () => {
+        window.location.reload();
+      });
+
+      // Прослушиваем изменения состояния сети, при подключении к сети перезагружаем страницу.
+      // Здесь мы обрабатываем случай, когда устройство полностью отключено от сети.
+      window.addEventListener('online', () => {
+        window.location.reload();
+      });
+
+      // Проверяем, отвечает ли сервер. Если он отвечает, перезагружаем страницу.
+      // Здесь мы обрабатываем случай, когда устройство подключено к сети, но сервер
+      // недоступен или работает неправильно.
+      async function checkNetworkAndReload() {
+        try {
+          const response = await fetch('.');
+          // Проверяем, что мы получили допустимый ответ с сервера
+          if (response.status >= 200 && response.status < 500) {
+            window.location.reload();
+            return;
+          }
+        } catch {
+          // Не удается подключиться к серверу, игнорируем.
+        }
+        window.setTimeout(checkNetworkAndReload, 2500);
+      }
+
+      checkNetworkAndReload();
+    </script>
+  </body>
+</html>

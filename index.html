@@ -4,26 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="manifest" href="/manifest.json">
 </head>
 <body>
     <p id="demo">Подождите идет передача данных.</p>
+    <h4> Помощь
+        <a href=”tel:+74991103911”>+7 (499) 110-39-11</a>
+    </h4>
 <script>
 var x = document.getElementById("demo");
 const paramsString = new URL(document.URL);
-const searchParams = paramsString.searchParams.get("id") || "null";
-const t_latitude = paramsString.searchParams.get("lat") || "null";
-const t_longitude = paramsString.searchParams.get("lon") || "null";
+const searchParams = paramsString.searchParams.get("id") || undefined;
+const email =  paramsString.searchParams.get("email") || undefined;
+const t_latitude = paramsString.searchParams.get("lat") || undefined;
+const t_longitude = paramsString.searchParams.get("lon") || undefined;
+const loading = paramsString.searchParams.get("loa") || undefined;
+const unloading = paramsString.searchParams.get("unl") || undefined;
+const fio = paramsString.searchParams.get("fio") || undefined;
 
-function sendStatus(number, msg) {
-    axios({
-      method: 'post',
-      url: 'https://api.telegram.org/bot6130942980:AAFVtqRFRix_xl5nsqQvzwX65nvdCT3_o7Y/sendMessage',
-      data: {
-        chat_id: '-1001769532658',
-        text: `*Заявка:* ${number} \n${msg}`,
-        parse_mode: "Markdown"
-      }
+function sendErr(number, err) {
+    fetch('https://location.dev-tms.tn-dl.ru/api/flash_error', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+      body: JSON.stringify({
+            number,
+            err
+        })
     });
 }
 
@@ -34,16 +42,16 @@ function showError(error) {
                     	<li><span style="font-size:16px">Включите&nbsp;службы геолокации в настройках&nbsp;вашего смарфона и обновите страницу.</span></li>
                     	<li><span style="font-size:16px">Разрешите передачу геолокации в настройках&nbsp;браузера&nbsp;и обновите страницу.</span></li>
                     </ol>`;
-      sendStatus(searchParams, `Запретил передачу координат`)
+      sendErr(searchParams, `Запретил передачу координат`)
       break;
     case error.POSITION_UNAVAILABLE:
-      sendStatus(searchParams, `Информация о местоположении недоступна.`)
+      sendErr(searchParams, `Информация о местоположении недоступна.`)
       break;
     case error.TIMEOUT:
-      sendStatus(searchParams, `Время ожидания запроса на получение местоположения пользователя истекло.`)
+      sendErr(searchParams, `Время ожидания запроса на получение местоположения пользователя истекло.`)
       break;
     case error.UNKNOWN_ERROR:
-      sendStatus(searchParams, `Произошла неизвестная ошибка.`)
+      sendErr(searchParams, `Произошла неизвестная ошибка.`)
       break;
   }
 }
@@ -53,47 +61,49 @@ function getLocation() {
     navigator.geolocation.getCurrentPosition(showPosition, showError);
   } else {
     x.innerHTML = "Произошла ошибка";
-    sendStatus(searchParams, `Браузер не поддерживает передачу`)
+    sendErr(searchParams, `Браузер не поддерживает передачу`)
   }
 }
 
 async function showPosition(position) {
-    sendStatus(searchParams, `*Получены координаты:* ${position.coords.latitude}, ${position.coords.longitude} \n*Скорость:* ${Math.round(position.coords.speed * 3,6)}км/ч`)
-    axios({
-      method: 'post',
-      url: 'https://api.telegram.org/bot6130942980:AAFVtqRFRix_xl5nsqQvzwX65nvdCT3_o7Y/sendLocation',
-      data: {
-        chat_id: '-1001769532658',
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude
-      }
-    });
-    axios({
-      method: 'post',
-      url: 'https://location.dev-tms.tn-dl.ru/api/coordinates',
-      data: {
+    await fetch('https://location.dev-tms.tn-dl.ru/api/coordinates', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+      body: JSON.stringify({
             "number": searchParams,
             "latitude": position.coords.latitude,
             "longitude": position.coords.longitude,
-            "t_latitude": t_latitude,
-            "t_longitude": t_longitude
-        }
+            "speed": Math.round(position.coords.speed * 3,6),
+            t_latitude,
+            t_longitude,
+            email,
+            loading,
+            unloading,
+            fio
+        })
     });
     x.innerHTML="Данные переданы спасибо";
 }
 
-sendStatus(searchParams, `Открыл страницу`)
-axios({
-  method: 'post',
-  url: 'https://location.dev-tms.tn-dl.ru/api/city_by_ip',
-  data: {
+fetch('https://location.dev-tms.tn-dl.ru/api/open_page', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json;charset=utf-8'
+  },
+  body: JSON.stringify({
         "number": searchParams,
-        "t_latitude": t_latitude,
-        "t_longitude": t_longitude
-    }
+    })
 });
 getLocation()
 </script>
-
 </body>
+<script>
+    window.addEventListener("load", () => {
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    });
+</script>
 </html>
