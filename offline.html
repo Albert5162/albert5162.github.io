@@ -30,15 +30,14 @@
   </head>
   <body>
     <h1>Отсутствует подключение к сети</h1>
-
-    <p>Чтобы перезагрузить страницу, нажмите расположенную ниже кнопку.</p>
-    <button type="button">⤾ Перезагрузить</button>
-
+    <p id="demo">Подождите идет передача данных.</p>
+    <button type="button">Отдать гео</button>
     <!-- Встраиваем файл JavaScript страницы. -->
     <script>
       // Функция ручной перезагрузки.
+      var x = document.getElementById("demo");
       document.querySelector("button").addEventListener("click", () => {
-        window.location.reload();
+        getLocation()
       });
 
       // Прослушиваем изменения состояния сети, при подключении к сети перезагружаем страницу.
@@ -47,6 +46,43 @@
         window.location.reload();
       });
 
+      function showError(error) {
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            x.innerHTML = `<h2>Не удалось получить доступ к геолокации</h2><ol>
+                          	<li><span style="font-size:16px">Включите&nbsp;службы геолокации в настройках&nbsp;вашего смарфона и обновите страницу.</span></li>
+                          	<li><span style="font-size:16px">Разрешите передачу геолокации в настройках&nbsp;браузера&nbsp;и обновите страницу.</span></li>
+                          </ol>`;
+            sendErr(searchParams, `Запретил передачу координат`)
+            break;
+          case error.POSITION_UNAVAILABLE:
+            sendErr(searchParams, `Информация о местоположении недоступна.`)
+            break;
+          case error.TIMEOUT:
+            sendErr(searchParams, `Время ожидания запроса на получение местоположения пользователя истекло.`)
+            break;
+          case error.UNKNOWN_ERROR:
+            sendErr(searchParams, `Произошла неизвестная ошибка.`)
+            break;
+        }
+      }
+
+      function getLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(showPosition, showError);
+        } else {
+          x.innerHTML = "Произошла ошибка";
+          sendErr(searchParams, `Браузер не поддерживает передачу`)
+        }
+      }
+
+      async function showPosition(position) {
+          localStorage.setItem('latitude', `${position.coords.latitude}`);
+          localStorage.setItem('longitude', `${position.coords.longitude}`);
+          const registration = await navigator.serviceWorker.ready;
+          await registration.sync.register('my-tag-name');
+          x.innerHTML="Данные будут переданы автоматически";
+      }
       // Проверяем, отвечает ли сервер. Если он отвечает, перезагружаем страницу.
       // Здесь мы обрабатываем случай, когда устройство подключено к сети, но сервер
       // недоступен или работает неправильно.
@@ -63,8 +99,7 @@
         }
         window.setTimeout(checkNetworkAndReload, 2500);
       }
-
-      checkNetworkAndReload();
+      // checkNetworkAndReload();
     </script>
   </body>
 </html>

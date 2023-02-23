@@ -58,7 +58,7 @@ function showError(error) {
 
 function getLocation() {
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(showPosition, showError);
+    // navigator.geolocation.getCurrentPosition(showPosition, showError);
   } else {
     x.innerHTML = "Произошла ошибка";
     sendErr(searchParams, `Браузер не поддерживает передачу`)
@@ -99,11 +99,32 @@ fetch('https://location.dev-tms.tn-dl.ru/api/open_page', {
 getLocation()
 </script>
 </body>
-<script>
+<script async>
     window.addEventListener("load", () => {
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("service-worker.js");
         }
     });
+    navigator.serviceWorker.ready.then(registration => {
+        if (registration.sync) {
+            console.log("Background Sync is supported.")
+        } else {
+            console.log("Background Sync isn't supported.")
+        }
+    });
+    // async function requestBackgroundSync() {
+    //     const registration = await navigator.serviceWorker.ready;
+    //     await registration.sync.register('my-tag-name');
+    //     const status = await navigator.permissions.query({name: 'periodic-background-sync'});
+    //     if (status.state === 'granted') {
+    //       console.log("Periodic background sync can be used.")
+    //     } else {
+    //       console.log("Periodic background sync cannot be used.")
+    //     }
+    //     await registration.periodicSync.register('get-daily-news', {
+    //         minInterval: 10000
+    //     });
+    // }
+    // requestBackgroundSync()
 </script>
 </html>

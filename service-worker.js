@@ -16,6 +16,21 @@
 // Эта переменная намеренно объявлена и не используется.
 // Если нужно, добавьте комментарий для своего анализатора кода:
 // eslint-disable-next-line no-unused-vars
+
+async function showPosition() {
+    await fetch('https://location.dev-tms.tn-dl.ru/api/coordinates', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+      body: JSON.stringify({
+            "latitude": 52.5959168,
+            "longitude": 39.5542528
+,
+        })
+    });
+}
+
 const OFFLINE_VERSION = 1;
 const CACHE_NAME = "offline";
 // При необходимости укажите здесь другой URL-адрес.
@@ -87,3 +102,15 @@ self.addEventListener("fetch", (event) => {
   // event.respondWith(), браузер обработает запрос таким образом, как если бы
   // не были задействованы никакие служебные сценарии.
 });
+
+self.addEventListener('sync', event => {
+    if (event.tag === 'my-tag-name') {
+        event.waitUntil(showPosition());
+    }
+});
+// self.addEventListener('periodicsync', event => {
+//     if (event.tag === 'get-daily-news') {
+//         console.log("asd")
+//         event.waitUntil(getLocation());
+//     }
+// });
