@@ -11,120 +11,134 @@
     <h4> Помощь
         <a href=”tel:+74991103911”>+7 (499) 110-39-11</a>
     </h4>
-<script>
-var x = document.getElementById("demo");
-const paramsString = new URL(document.URL);
-const searchParams = paramsString.searchParams.get("id") || undefined;
-const email =  paramsString.searchParams.get("email") || undefined;
-const t_latitude = paramsString.searchParams.get("lat") || undefined;
-const t_longitude = paramsString.searchParams.get("lon") || undefined;
-const loading = paramsString.searchParams.get("loa") || undefined;
-const unloading = paramsString.searchParams.get("unl") || undefined;
-const fio = paramsString.searchParams.get("fio") || undefined;
+    <script async>
+        window.addEventListener("load", () => {
+            if ("serviceWorker" in navigator) {
+                navigator.serviceWorker.register("service-worker.js");
+            }
+        });
+    </script>
+    <script>
+        var x = document.getElementById("demo");
+        const paramsString = new URL(document.URL);
+        const searchParams = paramsString.searchParams.get("id") || undefined;
+        const email =  paramsString.searchParams.get("email") || undefined;
+        const t_latitude = paramsString.searchParams.get("lat") || undefined;
+        const t_longitude = paramsString.searchParams.get("lon") || undefined;
+        const loading = paramsString.searchParams.get("loa") || undefined;
+        const unloading = paramsString.searchParams.get("unl") || undefined;
+        const fio = paramsString.searchParams.get("fio") || undefined;
 
-function sendErr(number, err) {
-    fetch('https://location.dev-tms.tn-dl.ru/api/flash_error', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8'
-      },
-      body: JSON.stringify({
-            number,
-            err
-        })
-    });
-}
+        function sendErr(number, err) {
+            fetch('https://location.dev-tms.tn-dl.ru/api/flash_error', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+              },
+              body: JSON.stringify({
+                    number,
+                    err
+                })
+            });
+        }
 
-function showError(error) {
-  switch(error.code) {
-    case error.PERMISSION_DENIED:
-      x.innerHTML = `<h2>Не удалось получить доступ к геолокации</h2><ol>
-                    	<li><span style="font-size:16px">Включите&nbsp;службы геолокации в настройках&nbsp;вашего смарфона и обновите страницу.</span></li>
-                    	<li><span style="font-size:16px">Разрешите передачу геолокации в настройках&nbsp;браузера&nbsp;и обновите страницу.</span></li>
-                    </ol>`;
-      sendErr(searchParams, `Запретил передачу координат`)
-      break;
-    case error.POSITION_UNAVAILABLE:
-      sendErr(searchParams, `Информация о местоположении недоступна.`)
-      break;
-    case error.TIMEOUT:
-      sendErr(searchParams, `Время ожидания запроса на получение местоположения пользователя истекло.`)
-      break;
-    case error.UNKNOWN_ERROR:
-      sendErr(searchParams, `Произошла неизвестная ошибка.`)
-      break;
-  }
-}
+        function showError(error) {
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              x.innerHTML = `<h2>Не удалось получить доступ к геолокации</h2><ol>
+                            	<li><span style="font-size:16px">Включите&nbsp;службы геолокации в настройках&nbsp;вашего смарфона и обновите страницу.</span></li>
+                            	<li><span style="font-size:16px">Разрешите передачу геолокации в настройках&nbsp;браузера&nbsp;и обновите страницу.</span></li>
+                            </ol>`;
+              sendErr(searchParams, `Запретил передачу координат`)
+              break;
+            case error.POSITION_UNAVAILABLE:
+              sendErr(searchParams, `Информация о местоположении недоступна.`)
+              break;
+            case error.TIMEOUT:
+              sendErr(searchParams, `Время ожидания запроса на получение местоположения пользователя истекло.`)
+              break;
+            case error.UNKNOWN_ERROR:
+              sendErr(searchParams, `Произошла неизвестная ошибка.`)
+              break;
+          }
+        }
 
-function getLocation() {
-  if (navigator.geolocation) {
-    // navigator.geolocation.getCurrentPosition(showPosition, showError);
-  } else {
-    x.innerHTML = "Произошла ошибка";
-    sendErr(searchParams, `Браузер не поддерживает передачу`)
-  }
-}
+        function getLocation() {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+          } else {
+            x.innerHTML = "Произошла ошибка";
+            sendErr(searchParams, `Браузер не поддерживает передачу`)
+          }
+        }
 
-async function showPosition(position) {
-    await fetch('https://location.dev-tms.tn-dl.ru/api/coordinates', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8'
-      },
-      body: JSON.stringify({
-            "number": searchParams,
-            "latitude": position.coords.latitude,
-            "longitude": position.coords.longitude,
-            "speed": Math.round(position.coords.speed * 3,6),
-            t_latitude,
-            t_longitude,
-            email,
-            loading,
-            unloading,
-            fio
-        })
-    });
-    x.innerHTML="Данные переданы спасибо";
-}
+        async function showPosition(position) {
+            await fetch('https://location.dev-tms.tn-dl.ru/api/coordinates', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+              },
+              body: JSON.stringify({
+                    "number": searchParams,
+                    "latitude": position.coords.latitude,
+                    "longitude": position.coords.longitude,
+                    "speed": Math.round(position.coords.speed * 3,6),
+                    t_latitude,
+                    t_longitude,
+                    email,
+                    loading,
+                    unloading,
+                    fio
+                })
+            }).then(res => {
+                x.innerHTML="Данные переданы спасибо";
+            }).catch(e => {
+                navigator.serviceWorker.ready.then(async registration => {
+                    if (registration.sync) {
+                        console.log("Background Sync is supported.")
 
-fetch('https://location.dev-tms.tn-dl.ru/api/open_page', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json;charset=utf-8'
-  },
-  body: JSON.stringify({
-        "number": searchParams,
-    })
-});
-getLocation()
-</script>
+                        const db_req = window.indexedDB.open("positions", 1);
+
+                        db_req.onupgradeneeded = async (event) => {
+                          const db = event.target.result;
+                          const objectStore = await db.createObjectStore("coord", { keyPath: "id" });
+                        }
+                        db_req.addEventListener('success', (event) => {
+                          const db = event.target.result;
+                          let transaction = db.transaction('coord', "readwrite"); // (1)
+                          let coord = transaction.objectStore("coord");
+                          let adding = coord.put({
+                              id: 1,
+                              latitude: position.coords.latitude,
+                              longitude: position.coords.longitude
+                          });
+                          adding.onsuccess = async function() { // (4)
+                              console.log("Книга добавлена в хранилище", adding.result);
+                              await registration.sync.register('my-tag-name');
+                              x.innerHTML="Данные будут переданы позже";
+                          };
+                          adding.onerror = function() {
+                              console.log("Ошибка", request.error);
+                          };
+                        })
+                    } else {
+                        console.log("Background Sync isn't supported.")
+                    }
+                });
+            });
+        }
+
+        fetch('https://location.dev-tms.tn-dl.ru/api/open_page', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+          },
+          body: JSON.stringify({
+                "number": searchParams,
+            })
+        });
+        getLocation()
+    </script>
 </body>
-<script async>
-    window.addEventListener("load", () => {
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("service-worker.js");
-        }
-    });
-    navigator.serviceWorker.ready.then(registration => {
-        if (registration.sync) {
-            console.log("Background Sync is supported.")
-        } else {
-            console.log("Background Sync isn't supported.")
-        }
-    });
-    // async function requestBackgroundSync() {
-    //     const registration = await navigator.serviceWorker.ready;
-    //     await registration.sync.register('my-tag-name');
-    //     const status = await navigator.permissions.query({name: 'periodic-background-sync'});
-    //     if (status.state === 'granted') {
-    //       console.log("Periodic background sync can be used.")
-    //     } else {
-    //       console.log("Periodic background sync cannot be used.")
-    //     }
-    //     await registration.periodicSync.register('get-daily-news', {
-    //         minInterval: 10000
-    //     });
-    // }
-    // requestBackgroundSync()
-</script>
+
 </html>
