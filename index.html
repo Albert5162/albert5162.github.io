@@ -120,6 +120,13 @@
                           };
                           adding.onerror = function() {
                               console.log("Ошибка", request.error);
+                              if (repeat_count < 3) {
+                                  repeat_count = repeat_count + 1
+                                  x.innerHTML="<em>Не удалось отправить данные.</em> Подождите, идет повторная отправка..." + (repeat_count);
+                                  showPosition(position)
+                              } else {
+                                  x.innerHTML="<em>Не удалось отправить данные.</em> <strong>Обновите страницу, что повторить попытку.</strong>";
+                              }
                           };
                         })
                     } else {
