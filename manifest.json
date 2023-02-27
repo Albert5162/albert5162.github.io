@@ -3,7 +3,7 @@
   "name": "MasterTMS для водителей",
   "icons": [
   ],
-  "id": "/?source=pwa",
+  "id": "/",
   "start_url": "/?source=pwa",
   "background_color": "#3367D6",
   "display": "standalone",
