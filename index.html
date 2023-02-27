@@ -72,6 +72,7 @@
           }
         }
 
+        let repeat_count = 1
         async function showPosition(position) {
             await fetch('https://location.dev-tms.tn-dl.ru/api/coordinates', {
               method: 'POST',
@@ -123,6 +124,14 @@
                         })
                     } else {
                         console.log("Background Sync isn't supported.")
+                        if (repeat_count < 3) {
+                            repeat_count = repeat_count + 1
+                            x.innerHTML="<em>Не удалось отправить данные.</em> Подождите, идет повторная отправка..." + (repeat_count);
+                            showPosition(position)
+                        } else {
+                            x.innerHTML="<em>Не удалось отправить данные.</em> <strong>Обновите страницу, что повторить попытку.</strong>";
+                        }
+
                     }
                 });
             });

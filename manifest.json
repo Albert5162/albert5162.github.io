@@ -2,11 +2,6 @@
   "short_name": "MasterTMS",
   "name": "MasterTMS для водителей",
   "icons": [
-    {
-      "src": "/images/Icon512x512.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
   ],
   "id": "/?source=pwa",
   "start_url": "/?source=pwa",
